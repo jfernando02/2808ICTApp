@@ -1,0 +1,40 @@
+services:
+   ecomm_app:
+     container_name: ecomm_app
+     image: ecomm-app
+     build: .
+     depends_on:
+       - mongo
+     ports:
+       - "3000:3000"
+     networks:
+       - frontend
+       - backend
+   mongo:
+     container_name: mongo
+     image: mongo
+     volumes:
+       - mongodata:/data/db
+     ports:
+       - "27017:27017"
+     networks:
+       - backend
+   mongo-express:
+     container_name: mongo-express
+     image: mongo-express
+     ports:
+       - "8081:8081"
+     environment:
+       - ME_CONFIG_MONGODB_SERVER=mongo
+       - ME_CONFIG_MONGODB_PORT=27017
+     depends_on:
+       - mongo
+     networks:
+       - backend
+       - frontend
+volumes:
+   mongodata:
+networks:
+   backend:
+     internal: true
+   frontend:
