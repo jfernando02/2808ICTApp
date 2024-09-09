@@ -32,9 +32,23 @@ services:
      networks:
        - backend
        - frontend
+   proxy:
+     container_name: proxy
+     image: nginx
+     volumes:
+       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+       - ./ssl/localhost.crt:/etc/ssl/certs/localhost.crt
+       - ./ssl/localhost.key:/etc/ssl/private/localhost.key
+     depends_on:
+       - ecomm_app
+     ports:
+       - "80:80"
+       - "443:443"
+     networks:
+       - frontend
 volumes:
    mongodata:
 networks:
    backend:
-     internal: true
+     internal: True
    frontend:
