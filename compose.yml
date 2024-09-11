@@ -27,6 +27,7 @@ services:
      environment:
        - ME_CONFIG_MONGODB_SERVER=mongo
        - ME_CONFIG_MONGODB_PORT=27017
+       - ME_CONFIG_SITE_BASEURL=/mongo-express
      depends_on:
        - mongo
      networks:
