@@ -1,0 +1,108 @@
+# proxy-deployment.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    worker_processes 1;
+    events { worker_connections 1024; }
+    http {
+        sendfile on;
+        large_client_header_buffers 4 32k;
+        server {
+                listen 80;
+                server_name localhost;
+                location / {
+                        return 301 https://$host$request_uri;
+                }
+        }
+        server {
+                listen 443 ssl;
+                server_name localhost;
+                ssl_certificate /etc/ssl/certs/localhost.crt;
+                ssl_certificate_key /etc/ssl/private/localhost.key;
+                location / {
+                        proxy_pass http://ecomm-app:3000/;
+                        proxy_redirect off;
+                        proxy_http_version 1.1;
+                        proxy_cache_bypass $http_upgrade;
+                        proxy_set_header Upgrade $http_upgrade;
+                        proxy_set_header Connection keep-alive;
+                        proxy_set_header Host $host;
+                        proxy_set_header X-Real-IP $remote_addr;
+                        proxy_set_header X-Forwarded-For
+    $proxy_add_x_forwarded_for;
+                        proxy_set_header X-Forwarded-Proto $scheme;
+                        proxy_set_header X-Forwarded-Host $server_name;
+                        proxy_buffer_size 128k;
+                        proxy_buffers 4 256k;
+                        proxy_busy_buffers_size 256k;
+                }
+        }
+    }
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tls-secret
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURtakNDQW9LZ0F3SUJBZ0lVTTZFajlsMzFKT2c0cVBrakZUNG01QVBRR3o0d0RRWUpLb1pJaHZjTkFRRUwKQlFBd0lqRUxNQWtHQTFVRUJoTUNWVk14RXpBUkJnTlZCQU1NQ2sxNUxWSnZiM1F0UTBFd0hoY05N
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ3l1ZkhsMTFYQzV3LzAKRnAxSHFadmw3QWZJVU9OTFdoVmNsVjZEZTBvampuMlEydkdGYUlTem5haVpIbS8rL1ZrVk12WFdI
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy
+  template:
+    metadata:
+      labels:
+        app: proxy
+    spec:
+      containers:
+      - name: proxy
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: tls-certs
+          mountPath: /etc/ssl
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
+      - name: tls-certs
+        secret:
+          secretName: tls-secret
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy-service
+spec:
+  selector:
+    app: proxy
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 443
+  type: LoadBalancer

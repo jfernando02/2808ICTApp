@@ -1,0 +1,35 @@
+# ecomm-app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecomm-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecomm-app
+  template:
+    metadata:
+      labels:
+        app: ecomm-app
+    spec:
+      containers:
+      - name: ecomm-app
+        image: ecomm-app:latest
+        ports:
+        - containerPort: 3000
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecomm-app-service
+spec:
+  selector:
+    app: ecomm-app
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: ClusterIP

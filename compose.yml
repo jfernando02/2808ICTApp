@@ -1,6 +1,6 @@
 services:
-   ecomm_app:
-     container_name: ecomm_app
+   ecomm-app:
+     container_name: ecomm-app
      image: ecomm-app
      build: .
      depends_on:
@@ -40,7 +40,8 @@ services:
        - ./ssl/localhost.crt:/etc/ssl/certs/localhost.crt
        - ./ssl/localhost.key:/etc/ssl/private/localhost.key
      depends_on:
-       - ecomm_app
+       - ecomm-app
+       - mongo-express
      ports:
        - "80:80"
        - "443:443"
