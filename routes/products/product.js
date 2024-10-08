@@ -6,6 +6,7 @@ const { isLoggedIn } = require('../../middleware');
 
 // Get all the products and display on index
 router.get('/products', async(req, res) => {
+    res.setHeader('X-Frame-Options', 'sameorigin');
     const products = await Product.find({});
     res.render('products/index', { products: products });
 })
