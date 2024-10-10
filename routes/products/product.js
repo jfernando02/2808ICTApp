@@ -58,4 +58,3 @@ router.delete('/products/:id', isLoggedIn, validateObjectId, async (req, res) =>
 });
 
 module.exports = router;
-
