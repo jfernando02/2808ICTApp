@@ -10,20 +10,25 @@ router.get('/register', (req, res) => {
 })
 
 
-
-// Register the new user
-router.post('/register', async(req, res) => {
-    
-    const user = {
-        username: req.body.username,
-        email:req.body.email
+// Register the new user with duplicate error handling
+router.post('/register', async (req, res) => {
+    const { username, email, password } = req.body;
+    try {
+        // Create a new user instance
+        const newUser = new User({ username, email });
+        // Attempt to register the user
+        await User.register(newUser, password);
+        // Redirect to login page if successful
+        res.redirect('/login');
+    } catch (err) {
+        if (err.code === 11000) { // MongoDB duplicate key error
+            console.error("Duplicate email error: ", err);
+            return res.status(409).send("User with this email already exists.");
+        }
+        // Handle any other errors that may occur
+        res.status(500).send("An error occurred during registration.");
     }
-
-    const newUser=await User.register(user, req.body.password);
-
-    res.redirect('/login');
-})
-
+});
 
 // get login page
 
