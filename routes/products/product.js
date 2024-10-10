@@ -41,7 +41,7 @@ router.get('/products/:id', async(req, res) => {
 // Edit product
 
 
-router.get('/products/:id/edit', async(req, res) => {
+router.get('/products/:id/edit',isLoggedIn, async(req, res) => {
     
     const product = await Product.findById(req.params.id);
 
@@ -51,7 +51,7 @@ router.get('/products/:id/edit', async(req, res) => {
 // patch request
 
 
-router.patch('/products/:id', async(req, res) => {
+router.patch('/products/:id',isLoggedIn, async(req, res) => {
     
     const product = await Product.findByIdAndUpdate(req.params.id, req.body.product);
 
@@ -61,7 +61,7 @@ router.patch('/products/:id', async(req, res) => {
 // Delete Product 
 
 
-router.delete('/products/:id', async(req, res) => {
+router.delete('/products/:id',isLoggedIn, async(req, res) => {
     
     await Product.findByIdAndDelete(req.params.id);
 
